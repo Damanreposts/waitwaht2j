@@ -4,6 +4,45 @@ local player = game.Players.LocalPlayer
 local userInputService = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local gravityToggle = false
+local noclipToggle = false
+local speedBoostToggle = false
+local jumpBoostToggle = false
+
+-- Function to make UI draggable
+local function makeDraggable(frame)
+    local dragging, dragInput, startPos, dragStart
+    
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    
+    userInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
 
 -- Create UI elements
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
@@ -13,6 +52,7 @@ local background = Instance.new("Frame", screenGui)
 background.Size = UDim2.new(1, 0, 1, 0)
 background.BackgroundColor3 = Color3.new(0, 0, 0)
 background.BackgroundTransparency = 1
+background.BorderSizePixel = 0
 
 local textBox = Instance.new("TextBox", background)
 textBox.Size = UDim2.new(0.3, 0, 0.1, 0)
@@ -20,6 +60,9 @@ textBox.Position = UDim2.new(0.35, 0, 0.45, 0)
 textBox.PlaceholderText = "Enter Password"
 textBox.Text = ""
 textBox.BackgroundTransparency = 1
+textBox.BackgroundColor3 = Color3.new(0, 0, 0)
+textBox.BorderSizePixel = 0
+textBox.TextColor3 = Color3.new(1, 1, 1)
 
 -- Fade in Background
 local fadeInTween = tweenService:Create(background, TweenInfo.new(1.5), {BackgroundTransparency = 0})
@@ -36,6 +79,9 @@ textLabel.Size = UDim2.new(1, 0, 0.5, 0)
 textLabel.Position = UDim2.new(-1, 0, -1, 0)
 textLabel.Text = "Enter the password to proceed"
 textLabel.TextTransparency = 1
+textLabel.BackgroundColor3 = Color3.new(0, 0, 0)
+textLabel.BorderSizePixel = 0
+textLabel.TextColor3 = Color3.new(1, 1, 1)
 
 local fadeInTextLabel = tweenService:Create(textLabel, TweenInfo.new(1.5), {TextTransparency = 0, Position = UDim2.new(0, 0, -1, 0)})
 fadeInTextLabel:Play()
@@ -48,41 +94,53 @@ textBox.FocusLost:Connect(function(enterPressed)
         local mainUI = Instance.new("Frame", screenGui)
         mainUI.Size = UDim2.new(0.3, 0, 0.3, 0)
         mainUI.Position = UDim2.new(0.35, 0, 0.35, 0)
-        mainUI.BackgroundTransparency = 1
+        mainUI.BackgroundTransparency = 0
+        mainUI.BackgroundColor3 = Color3.new(0, 0, 0)
+        mainUI.BorderSizePixel = 0
+        makeDraggable(mainUI)
         
-        local expandTween = tweenService:Create(mainUI, TweenInfo.new(1.5), {Size = UDim2.new(0.4, 0, 0.4, 0), BackgroundTransparency = 0})
-        expandTween:Play()
-        
-        wait(1.5)
-
-        local madeByText = Instance.new("TextLabel", screenGui)
-        madeByText.Size = UDim2.new(0.2, 0, 0.05, 0)
-        madeByText.Position = UDim2.new(0.4, 0, 0.9, 0)
-        madeByText.Text = "Made by Flokinia on YT"
-        madeByText.TextTransparency = 1
-        
-        local fadeInMadeBy = tweenService:Create(madeByText, TweenInfo.new(1), {TextTransparency = 0})
-        fadeInMadeBy:Play()
-        wait(2)
-        local fadeOutMadeBy = tweenService:Create(madeByText, TweenInfo.new(1), {TextTransparency = 1})
-        fadeOutMadeBy:Play()
-
-        -- Toggle Switch for Low Gravity
-        local toggleButton = Instance.new("TextButton", mainUI)
-        toggleButton.Size = UDim2.new(0.3, 0, 0.1, 0)
-        toggleButton.Position = UDim2.new(0.1, 0, 0.1, 0)
-        toggleButton.Text = "Trolling"
-        toggleButton.BackgroundColor3 = Color3.new(1, 0, 0)
-
-        toggleButton.MouseButton1Click:Connect(function()
-            gravityToggle = not gravityToggle
-            if gravityToggle then
-                toggleButton.BackgroundColor3 = Color3.new(0, 1, 0)
-                game.Workspace.Gravity = 10
-            else
-                toggleButton.BackgroundColor3 = Color3.new(1, 0, 0)
-                game.Workspace.Gravity = 196.2
-            end
+        local closeButton = Instance.new("TextButton", mainUI)
+        closeButton.Size = UDim2.new(0.1, 0, 0.1, 0)
+        closeButton.Position = UDim2.new(0.9, 0, 0, 0)
+        closeButton.Text = "X"
+        closeButton.BackgroundColor3 = Color3.new(1, 0, 0)
+        closeButton.MouseButton1Click:Connect(function()
+            mainUI.Visible = false
+            reopenButton.Visible = true
         end)
+        
+        local reopenButton = Instance.new("TextButton", screenGui)
+        reopenButton.Size = UDim2.new(0.1, 0, 0.05, 0)
+        reopenButton.Position = UDim2.new(0.45, 0, 0.5, 0)
+        reopenButton.Text = "O"
+        reopenButton.BackgroundColor3 = Color3.new(0, 0, 0)
+        reopenButton.BorderSizePixel = 0
+        makeDraggable(reopenButton)
+        reopenButton.Visible = false
+        reopenButton.MouseButton1Click:Connect(function()
+            mainUI.Visible = true
+            reopenButton.Visible = false
+        end)
+
+        local function createButton(text, position, callback)
+            local button = Instance.new("TextButton", mainUI)
+            button.Size = UDim2.new(0.3, 0, 0.1, 0)
+            button.Position = position
+            button.Text = text
+            button.BackgroundColor3 = Color3.new(0, 0, 0)
+            button.BorderSizePixel = 0
+            button.MouseButton1Click:Connect(callback)
+            return button
+        end
+
+        local buttons = {
+            {"Trolling", UDim2.new(0.1, 0, 0.1, 0), function() gravityToggle = not gravityToggle end},
+            {"Noclip", UDim2.new(0.1, 0, 0.2, 0), function() noclipToggle = not noclipToggle end},
+            {"Rejoin", UDim2.new(0.1, 0, 0.3, 0), function() game:GetService("TeleportService"):Teleport(game.PlaceId, player) end}
+        }
+        
+        for _, v in pairs(buttons) do
+            createButton(v[1], v[2], v[3])
+        end
     end
 end)
