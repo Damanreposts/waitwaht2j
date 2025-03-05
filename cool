@@ -1,0 +1,88 @@
+
+-- UI Settings
+local player = game.Players.LocalPlayer
+local userInputService = game:GetService("UserInputService")
+local tweenService = game:GetService("TweenService")
+local gravityToggle = false
+
+-- Create UI elements
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.ResetOnSpawn = false
+
+local background = Instance.new("Frame", screenGui)
+background.Size = UDim2.new(1, 0, 1, 0)
+background.BackgroundColor3 = Color3.new(0, 0, 0)
+background.BackgroundTransparency = 1
+
+local textBox = Instance.new("TextBox", background)
+textBox.Size = UDim2.new(0.3, 0, 0.1, 0)
+textBox.Position = UDim2.new(0.35, 0, 0.45, 0)
+textBox.PlaceholderText = "Enter Password"
+textBox.Text = ""
+textBox.BackgroundTransparency = 1
+
+-- Fade in Background
+local fadeInTween = tweenService:Create(background, TweenInfo.new(1.5), {BackgroundTransparency = 0})
+fadeInTween:Play()
+wait(1.5)
+
+-- Fade in TextBox
+local fadeInTextBox = tweenService:Create(textBox, TweenInfo.new(1.5), {BackgroundTransparency = 0})
+fadeInTextBox:Play()
+wait(2)
+
+local textLabel = Instance.new("TextLabel", textBox)
+textLabel.Size = UDim2.new(1, 0, 0.5, 0)
+textLabel.Position = UDim2.new(-1, 0, -1, 0)
+textLabel.Text = "Enter the password to proceed"
+textLabel.TextTransparency = 1
+
+local fadeInTextLabel = tweenService:Create(textLabel, TweenInfo.new(1.5), {TextTransparency = 0, Position = UDim2.new(0, 0, -1, 0)})
+fadeInTextLabel:Play()
+
+textBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed and textBox.Text == "robloxisfree" then
+        local fadeOutTween = tweenService:Create(background, TweenInfo.new(1.5), {BackgroundTransparency = 1})
+        fadeOutTween:Play()
+
+        local mainUI = Instance.new("Frame", screenGui)
+        mainUI.Size = UDim2.new(0.3, 0, 0.3, 0)
+        mainUI.Position = UDim2.new(0.35, 0, 0.35, 0)
+        mainUI.BackgroundTransparency = 1
+        
+        local expandTween = tweenService:Create(mainUI, TweenInfo.new(1.5), {Size = UDim2.new(0.4, 0, 0.4, 0), BackgroundTransparency = 0})
+        expandTween:Play()
+        
+        wait(1.5)
+
+        local madeByText = Instance.new("TextLabel", screenGui)
+        madeByText.Size = UDim2.new(0.2, 0, 0.05, 0)
+        madeByText.Position = UDim2.new(0.4, 0, 0.9, 0)
+        madeByText.Text = "Made by Flokinia on YT"
+        madeByText.TextTransparency = 1
+        
+        local fadeInMadeBy = tweenService:Create(madeByText, TweenInfo.new(1), {TextTransparency = 0})
+        fadeInMadeBy:Play()
+        wait(2)
+        local fadeOutMadeBy = tweenService:Create(madeByText, TweenInfo.new(1), {TextTransparency = 1})
+        fadeOutMadeBy:Play()
+
+        -- Toggle Switch for Low Gravity
+        local toggleButton = Instance.new("TextButton", mainUI)
+        toggleButton.Size = UDim2.new(0.3, 0, 0.1, 0)
+        toggleButton.Position = UDim2.new(0.1, 0, 0.1, 0)
+        toggleButton.Text = "Trolling"
+        toggleButton.BackgroundColor3 = Color3.new(1, 0, 0)
+
+        toggleButton.MouseButton1Click:Connect(function()
+            gravityToggle = not gravityToggle
+            if gravityToggle then
+                toggleButton.BackgroundColor3 = Color3.new(0, 1, 0)
+                game.Workspace.Gravity = 10
+            else
+                toggleButton.BackgroundColor3 = Color3.new(1, 0, 0)
+                game.Workspace.Gravity = 196.2
+            end
+        end)
+    end
+end)
